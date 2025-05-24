@@ -1,0 +1,37 @@
+# Ignore Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.env
+.venv
+
+# Ignore data files
+*.jsonl
+*.pgn
+*.pt
+*.h5
+*.ckpt
+*.npz
+*.npy
+checkpoints/
+logs/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE/project files
+.vscode/
+.idea/
+*.swp
+*.bak
+
+# Ignore notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore temporary files
+*.log
+*.tmp
+*.out
+*.cache/
