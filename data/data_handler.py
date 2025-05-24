@@ -10,6 +10,8 @@
 
 from torch.utils.data import DataLoader
 import json, torch, pytorch_lightning
+
+from utils import indexUCI
 from utils.fen_to_tensor import convert_fen_to_tensor
 from torch.utils.data import IterableDataset
 import warnings
@@ -35,7 +37,11 @@ class ChessDataset(IterableDataset):
             sample = json.loads(line)
             tensor_fen = convert_fen_to_tensor(sample['fen'])
             fen_tensor = torch.tensor(tensor_fen, dtype=torch.float32)
-            move_tensor = torch.tensor(sample['index'], dtype=torch.long)
+            try:
+                move_tensor = torch.tensor(sample['index'], dtype=torch.long)
+            except:
+                move_tensor = torch.tensor(indexUCI.encode(sample['move']), dtype=torch.long)
+
             return fen_tensor, move_tensor
         except KeyError:
             return None

@@ -33,7 +33,7 @@ class ResidualBlock(nn.Module):
         return self.relu(out)
 
 class ChessResNet(pl.LightningModule):
-    def __init__(self, num_blocks=6, num_channels=64, num_outputs=1968, lr=0.001):
+    def __init__(self, num_blocks=20, num_channels=208, num_outputs=1968, lr=0.001):
         super().__init__()
         self.save_hyperparameters()
         self.acc_window = deque(maxlen=100)
