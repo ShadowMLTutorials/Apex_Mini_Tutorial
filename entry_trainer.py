@@ -9,7 +9,7 @@ from pytorch_lightning.callbacks import RichProgressBar
 # =============================================== PARAMETERS =======================================================
 JSONL_PATH         = "data/converted_data.jsonl"   # Path to .jsonl dataset
 FROM_JSONL         = True                          # Set True if using JSONL instead of .pt
-BATCH_SIZE         = 256                           # Number of samples sent to the GPU at a time
+BATCH_SIZE         = 2560                          # Number of samples sent to the GPU at a time
 LEARNING_RATE      = 1e-3                          # How much model adjusts; too high = unstable, too low = slow learning
 EPOCHS             = 1000                          # Number of times to loop over the dataset MAX
 NUM_WORKERS        = min(4, os.cpu_count()-2)      # Number of parallel processes(should be no more than 4)
