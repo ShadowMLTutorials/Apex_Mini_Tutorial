@@ -8,14 +8,19 @@
 # Ideal for learners and hobbyists working with chess AI models.
 # -------------------------------------------------------------
 
+import json
+import warnings
+
+import pytorch_lightning
+import torch
 from torch.utils.data import DataLoader
-import json, torch, pytorch_lightning
+from torch.utils.data import IterableDataset
 
 from utils import indexUCI
 from utils.fen_to_tensor import convert_fen_to_tensor
-from torch.utils.data import IterableDataset
-import warnings
+
 warnings.filterwarnings("ignore", message="Your `IterableDataset` has `__len__` defined.*")
+
 
 # Loads chess data from .jsonl file line-by-line (on-demand)
 class ChessDataset(IterableDataset):
@@ -52,6 +57,7 @@ class ChessDataset(IterableDataset):
                 result = self.parse_line(line)
                 if result is not None:
                     yield result
+
 
 # Lightning DataModule that provides a PyTorch DataLoader
 class PolicyDataModule(pytorch_lightning.LightningDataModule):

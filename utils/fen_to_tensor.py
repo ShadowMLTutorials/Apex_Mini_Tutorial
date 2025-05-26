@@ -1,5 +1,6 @@
-import numpy as np
 import chess
+import numpy as np
+
 
 def convert_fen_to_tensor(fen):
     """ Final tensor shape: [18, 8, 8]

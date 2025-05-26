@@ -1,11 +1,14 @@
+import matplotlib.pyplot as plt
 from pytorch_lightning import Trainer
 from pytorch_lightning.tuner import Tuner
+
 from data.data_handler import PolicyDataModule
 from entry_model import ChessResNet
-import matplotlib.pyplot as plt
+
 
 def entry_dataloader():
     return PolicyDataModule(data_path="data/games.jsonl", batch_size=256, num_workers=4)
+
 
 def get_lr(trainer, datamodule, model):
     tuner = Tuner(trainer)
@@ -19,6 +22,7 @@ def get_lr(trainer, datamodule, model):
         update_attr=True
     )
     return lr_finder
+
 
 if __name__ == "__main__":
     trainer = Trainer(max_epochs=1, enable_checkpointing=False, logger=False, precision='16-mixed')

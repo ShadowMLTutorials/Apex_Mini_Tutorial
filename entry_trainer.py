@@ -1,24 +1,30 @@
 import argparse
+import os
 
-import torch,  pytorch_lightning, os
-from pytorch_lightning.loggers import CSVLogger
-from entry_model import ChessResNet
-from data.data_handler import PolicyDataModule
+import pytorch_lightning
+import torch
 from pytorch_lightning.callbacks import RichProgressBar
+from pytorch_lightning.loggers import CSVLogger
+
+from data.data_handler import PolicyDataModule
+from entry_model import ChessResNet
 
 # =============================================== PARAMETERS =======================================================
-JSONL_PATH         = "data/converted_data.jsonl"   # Path to .jsonl dataset
-FROM_JSONL         = True                          # Set True if using JSONL instead of .pt
-BATCH_SIZE         = 2560                          # Number of samples sent to the GPU at a time
-LEARNING_RATE      = 1e-3                          # How much model adjusts; too high = unstable, too low = slow learning
-EPOCHS             = 1000                          # Number of times to loop over the dataset MAX
-NUM_WORKERS        = min(4, os.cpu_count()-2)      # Number of parallel processes(should be no more than 4)
-CHECKPOINT_DIR     = "checkpoints"                 # Sub folder to save models in
+JSONL_PATH = "data/converted_data.jsonl"  # Path to .jsonl dataset
+FROM_JSONL = True  # Set True if using JSONL instead of .pt
+BATCH_SIZE = 256  # Number of samples sent to the GPU at a time
+LEARNING_RATE = 1e-3  # How much model adjusts; too high = unstable, too low = slow learning
+EPOCHS = 1000  # Number of times to loop over the dataset MAX
+NUM_WORKERS = min(4, os.cpu_count() - 2)  # Number of parallel processes(should be no more than 4)
+CHECKPOINT_DIR = "checkpoints"  # Sub folder to save models in
+
+
 # ==================================================================================================================
 
 def entry_dataloader():
     data_module = PolicyDataModule(data_path=JSONL_PATH, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
     return data_module
+
 
 def entry_train(resume_ckpt=None):
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
@@ -53,10 +59,9 @@ def entry_train(resume_ckpt=None):
     print(f"\n✅ Training complete. Model saved to: {save_path}\n")
 
 
-
-
 if __name__ == "__main__":
     import os
+
     if os.isatty(0):
         os.system('cls' if os.name == 'nt' else 'clear')
     print("== Starting Training ==")

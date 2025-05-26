@@ -1,10 +1,12 @@
 # 🧠 Apex Chess Mini - Tutorial Version
 
-A no-nonsense, beginner-friendly chess AI framework for hobbyists, learners, and tinkerers. Built to demystify machine learning through a real, working chess model — no PhD required.
+A no-nonsense, beginner-friendly chess AI framework for hobbyists, learners, and tinkerers. Built to demystify machine
+learning through a real, working chess model — no PhD required.
 
 ## 📌 Project Overview
 
-This repo walks you through building and training your own chess-playing AI using PyTorch Lightning. The core model is a lightweight ResNet policy network that learns to predict strong chess moves from real games.
+This repo walks you through building and training your own chess-playing AI using PyTorch Lightning. The core model is a
+lightweight ResNet policy network that learns to predict strong chess moves from real games.
 
 > Whether you're a chess player curious about AI or a coder dipping your toes into ML — this is your entry point.
 
@@ -80,8 +82,7 @@ pip install -r requirements.txt
 
 ## 💬 Community & Support
 
-* Want more advanced content? Join the [Patreon](#)
-* Questions? Open an issue or message on Discord (coming soon)
+Need help? Join the [Discord](https://discord.gg/EbZJxnJyQr) and hop into the ML Lounge or Supporter channels.
 
 ---
 

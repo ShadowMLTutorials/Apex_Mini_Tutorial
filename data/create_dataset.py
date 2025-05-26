@@ -10,39 +10,47 @@
 # Ideal for beginners building their first ML-ready chess dataset.
 # -------------------------------------------------------------
 
-import io, chess.pgn, json, sys, os
+import io
+import json
+import os
+import sys
 from pathlib import Path
 from random import shuffle
+
+import chess.pgn
+
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from multiprocessing import Pool
 from tqdm import tqdm
 from utils.indexUCI import encode
 
 # ===================================== USER SETTINGS =====================================
-INPUT_PGN =    Path("games.pgn")               # Path to input PGN file
-OUTPUT_JSONL = Path("games.jsonl")             # Path to save processed data
-REQUIRE_MATE = True                            # Only keep games that end in checkmate
-MIN_ELO =      2100                            # Minimum average Elo of players
-MIN_MOVES =    20                              # Ignore games shorter than this
-MAX_MOVES =    100                             # Ignore games longer than this
-NUM_WORKERS =  min(36, os.cpu_count() - 2)     # Parallel workers
+INPUT_PGN = Path("games.pgn")  # Path to input PGN file
+OUTPUT_JSONL = Path("games.jsonl")  # Path to save processed data
+REQUIRE_MATE = True  # Only keep games that end in checkmate
+MIN_ELO = 2100  # Minimum average Elo of players
+MIN_MOVES = 20  # Ignore games shorter than this
+MAX_MOVES = 100  # Ignore games longer than this
+NUM_WORKERS = min(36, os.cpu_count() - 2)  # Parallel workers
 # =========================================================================================
 
 fen_move_pairs = []
-game_strings   = []
+game_strings = []
+
 
 def should_include_game(headers):
     """Check if a game meets filtering criteria based on ELO and termination."""
     try:
         avg_elo = (int(headers["WhiteElo"]) + int(headers["BlackElo"])) / 2
         if avg_elo < MIN_ELO:
-            return False # skip game for low elo
+            return False  # skip game for low elo
 
         if REQUIRE_MATE and "Normal" not in headers.get("Termination", ""):
-            return False # skip game for no checkmate
+            return False  # skip game for no checkmate
     except:
-        return False # skip game because header is missing elo or checkmate info
+        return False  # skip game because header is missing elo or checkmate info
     return True
+
 
 def find_valid_games():
     """Scan PGN file and collect games that meet the filtering criteria."""
@@ -50,6 +58,7 @@ def find_valid_games():
         for game in tqdm(iter(lambda: chess.pgn.read_game(f), None), desc="Scanning games", unit="game"):
             if should_include_game(game.headers):
                 game_strings.append(str(game))
+
 
 def process_game(game_str):
     """Convert a single game string into a list of (FEN, move, index) tuples."""
@@ -72,6 +81,7 @@ def process_game(game_str):
         board.push(move)
     return local_triplets
 
+
 def remove_duplicates(triplets):
     """Filter out duplicate positions based on FEN."""
     seen = set()
@@ -82,6 +92,7 @@ def remove_duplicates(triplets):
             unique_triplets.append((fen, move, idx))
             seen.add(fen_key)
     return unique_triplets
+
 
 def process_pgn():
     """Parallel processing of all valid games into FEN/move/index triplets and write to output."""
@@ -102,6 +113,7 @@ def process_pgn():
         for fen, move, idx in tqdm(fen_move_pairs, desc="💾 Saving to JSONL"):
             json.dump({"fen": fen, "move": move, "index": idx}, out_f)
             out_f.write("\n")
+
 
 if __name__ == "__main__":
     print("\n================= ♟ CHESS DATASET CREATOR ♟ =================")

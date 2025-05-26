@@ -1,12 +1,14 @@
-import torch
-import chess
-import chess.pgn
-from entry_model import ChessResNet
-from utils.fen_to_tensor import convert_fen_to_tensor
-from utils import indexUCI
 import random
 
-MODEL_PATH = "checkpoints/step-step=129500.ckpt"
+import chess
+import chess.pgn
+import torch
+
+from entry_model import ChessResNet
+from utils import indexUCI
+from utils.fen_to_tensor import convert_fen_to_tensor
+
+MODEL_PATH = "checkpoints/(ENTER CHECKPOINT FILE NAME)"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 MAX_MOVES = 300
 NUM_GAMES = 20

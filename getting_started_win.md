@@ -1,6 +1,7 @@
 # Getting Started with Apex Mini (Windows)
 
-Welcome to your first step in building your own AI-powered chess engine. This guide walks you through setting up the environment, preparing your data, and running your first training session using the Apex Mini tutorial project.
+Welcome to your first step in building your own AI-powered chess engine. This guide walks you through setting up the
+environment, preparing your data, and running your first training session using the Apex Mini tutorial project.
 
 > 🐧 **Using Linux?** [Click here for the Linux setup guide](getting_started.md)
 
@@ -8,16 +9,16 @@ Welcome to your first step in building your own AI-powered chess engine. This gu
 
 * Python 3.9 or newer (Install from [python.org](https://www.python.org/downloads/))
 
-  * Be sure to check "Add Python to PATH" during installation
+    * Be sure to check "Add Python to PATH" during installation
 * Git for Windows ([Download here](https://git-scm.com/download/win))
 
-  * During setup, accept default options unless you know what you're doing
+    * During setup, accept default options unless you know what you're doing
 * NVIDIA GPU with CUDA support (minimum 6GB VRAM recommended)
 
-  * High-end CPUs are usable but very slow (expect days of training)
-  * AMD GPUs are not supported for training (for now)
+    * High-end CPUs are usable but very slow (expect days of training)
+    * AMD GPUs are not supported for training (for now)
 
-    * You can still run inference
+        * You can still run inference
 * Command Prompt or PowerShell
 * Python IDE recommended: PyCharm [Official Download](https://www.jetbrains.com/pycharm/download/)
 
@@ -43,20 +44,20 @@ You can:
 
 * Use a PGN dataset from any source
 
-  * Suggested: [Lichess Elite Database](https://database.nikonoel.fr/)
-  * Start with a 30-50MB PGN file for smaller models
+    * Suggested: [Lichess Elite Database](https://database.nikonoel.fr/)
+    * Start with a 30-50MB PGN file for smaller models
 * Or generate your own PGN from games you’ve played
 * Save the PGN in the `data/` folder as `games.pgn`
 
-  * Or modify the filepath in `data/create_dataset.py`
+    * Or modify the filepath in `data/create_dataset.py`
 
 Then convert to `.jsonl` format:
 
 * Modify the top of `create_dataset.py` to set:
 
-  * Min/max move count per game
-  * Require checkmate ending
-  * Minimum ELO filter
+    * Min/max move count per game
+    * Require checkmate ending
+    * Minimum ELO filter
 
 ```cmd
 .venv\Scripts\activate  # if not already in venv

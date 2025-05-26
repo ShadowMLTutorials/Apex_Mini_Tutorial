@@ -286,6 +286,7 @@ uci_to_index = {
 
 index_to_uci = {v: k for k, v in uci_to_index.items()}
 
+
 def encode(move: str) -> int:
     """Convert index  to UCI string using the 1968 move dictionary.
     Args:

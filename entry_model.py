@@ -7,12 +7,12 @@
 # - Learning rate logging and scheduler setup.
 # Ideal for beginner ML hobbyists to train and deploy chess AIs.
 # -------------------------------------------------------------
+from collections import deque
+
+import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pytorch_lightning as pl
-from collections import deque
-
 from torchinfo import summary
 
 
@@ -31,6 +31,7 @@ class ResidualBlock(nn.Module):
         out = self.norm2(self.conv2(out))
         out += residual
         return self.relu(out)
+
 
 class ChessResNet(pl.LightningModule):
     def __init__(self, num_blocks=20, num_channels=208, num_outputs=1968, lr=0.001):
@@ -95,7 +96,6 @@ class ChessResNet(pl.LightningModule):
 
 
 if __name__ == "__main__":
-
     model = ChessResNet()
     dummy_input = torch.randn(1, 18, 8, 8)
     summary(model, input_data=dummy_input)
