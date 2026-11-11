@@ -146,11 +146,16 @@ if __name__ == "__main__":
                         help="Path to an installed Stockfish executable.")
     parser.add_argument("--smoke-test", action="store_true",
                         help="Use a small untrained model and a short test; no checkpoint required.")
+    parser.add_argument("--games-per-level", type=int, default=None)
+    parser.add_argument("--max-moves", type=int, default=None,
+                        help="Maximum plies per game.")
     args = parser.parse_args()
     if args.stockfish.startswith("(ENTER"):
         parser.error("Provide a Stockfish executable using --stockfish PATH.")
-    if args.smoke_test:
-        MAX_MOVES = 20
-        GAMES_PER_LEVEL = 1
+    GAMES_PER_LEVEL = (args.games_per_level if args.games_per_level is not None
+                       else (1 if args.smoke_test else GAMES_PER_LEVEL))
+    MAX_MOVES = args.max_moves if args.max_moves is not None else (20 if args.smoke_test else MAX_MOVES)
+    if GAMES_PER_LEVEL < 1 or MAX_MOVES < 1:
+        parser.error("--games-per-level and --max-moves must both be positive.")
     model = load_model(args.checkpoint, random_init=args.smoke_test)
     evaluate_model(model, args.stockfish)
