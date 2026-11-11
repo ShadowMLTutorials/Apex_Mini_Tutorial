@@ -25,7 +25,7 @@ environment, preparing your data, and running your first training session using 
 ## 📦 Step 1: Clone the Repo
 
 ```cmd
-git clone https://github.com/ShadowBLGaming/Apex_Mini_Tutorial.git
+git clone https://github.com/ShadowMLTutorials/Apex_Mini_Tutorial.git
 cd Apex_Mini_Tutorial
 ```
 
@@ -63,6 +63,8 @@ Then convert to `.jsonl` format:
 .venv\Scripts\activate  # if not already in venv
 python data\create_dataset.py
 ```
+
+The converter writes `data/games.jsonl`, which `entry_trainer.py` reads directly without another processing step.
 
 ## 🧠 Step 4: Train the Model
 
