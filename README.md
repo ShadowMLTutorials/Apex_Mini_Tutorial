@@ -97,3 +97,36 @@ Need help? Join the [Discord](https://discord.gg/EbZJxnJyQr) and hop into the ML
 ## 📜 License
 
 The repository's original source code is MIT licensed (see [LICENSE](LICENSE)). Dependencies retain their own licenses; in particular, `chess` (python-chess) is GPL-3.0-or-later. Review its conditions when distributing combined software or checking project eligibility.
+
+## 🧪 Small-data smoke testing
+
+A trained model and a large PGN are **not** required to check that the software runs. Use one of two test paths:
+
+**Checkpoint-free self-play:** This creates a small *randomly initialized*, untrained network in memory and attempts one short self-play game. The moves will not reflect chess skill.
+
+```bash
+python model_vs_self.py --smoke-test
+```
+
+**End-to-end data and training test:** Lichess lets you export a bounded number of public games as PGN. The following example requests up to 50 games from a public account; this is only for local testing, and the data remains gitignored.
+
+```bash
+curl --fail --location -H "Accept: application/x-chess-pgn" \
+  "https://lichess.org/api/games/user/DrNykterstein?max=50&clocks=false&evals=false&opening=false" \
+  --output data/games.pgn
+
+python data/create_dataset.py --smoke-test
+python entry_trainer.py --smoke-test
+python model_vs_self.py --checkpoint checkpoints/chess_model_smoke.ckpt --games 1 --max-moves 20
+```
+
+The dataset smoke-test flag relaxes the default Elo/checkmate filters. Training smoke mode runs one epoch with a small 1-block, 16-channel model and writes `checkpoints/chess_model_smoke.ckpt` instead of overwriting the regular checkpoint. Both the PGN and checkpoint remain excluded from Git.
+
+If you have Stockfish installed, the engine comparison also accepts an untrained model or a saved checkpoint:
+
+```bash
+python Model_vs_SF.py --smoke-test --stockfish /path/to/stockfish
+python Model_vs_SF.py --checkpoint checkpoints/chess_model_smoke.ckpt --stockfish /path/to/stockfish --games-per-level 1 --max-moves 20
+```
+
+These smoke tests verify the software pipeline, **not** playing strength or a meaningful Elo estimate. No pretrained checkpoint is included.
