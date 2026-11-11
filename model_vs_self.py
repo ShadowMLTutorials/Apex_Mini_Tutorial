@@ -1,3 +1,4 @@
+import argparse
 import random
 from pathlib import Path
 
@@ -16,9 +17,15 @@ NUM_GAMES = 20
 TEMPERATURE = .5
 
 
-def load_model(path):
-    # Lightning checkpoints retain the model hyperparameters used for training.
-    model = ChessResNet.load_from_checkpoint(str(path), map_location=DEVICE)
+def load_model(path, random_init=False):
+    if random_init:
+        print("SMOKE TEST: using a small randomly initialized model (not trained).")
+        model = ChessResNet(num_blocks=1, num_channels=16)
+    else:
+        if not path.is_file():
+            raise FileNotFoundError(f"Checkpoint not found: {path}. Train first or use --smoke-test.")
+        # Lightning checkpoints retain the model hyperparameters used for training.
+        model = ChessResNet.load_from_checkpoint(str(path), map_location=DEVICE)
     model.to(DEVICE)
     model.eval()
     return model
@@ -75,7 +82,16 @@ def save_games(games, path="self_play_games.pgn"):
 
 
 if __name__ == "__main__":
-    model = load_model(MODEL_PATH)
+    parser = argparse.ArgumentParser(description="Run chess model self-play.")
+    parser.add_argument("--checkpoint", type=Path, default=MODEL_PATH,
+                        help="Path to a Lightning training checkpoint.")
+    parser.add_argument("--smoke-test", action="store_true",
+                        help="Use a small untrained model; no checkpoint required.")
+    args = parser.parse_args()
+    if args.smoke_test:
+        NUM_GAMES = 1
+        MAX_MOVES = 20
+    model = load_model(args.checkpoint, random_init=args.smoke_test)
     games = [play_self_game(model) for _ in range(NUM_GAMES)]
     save_games(games)
     print(f"✅ {NUM_GAMES} games saved to self_play_games.pgn")
