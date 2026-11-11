@@ -25,6 +25,8 @@ lightweight ResNet policy network that learns to predict strong chess moves from
 logs/                     # Training logs
 checkpoints/              # Saved model checkpoints
 data/
+├── games.pgn             # User-provided training games (not committed)
+├── games.jsonl           # Generated training examples (not committed)
 ├── create_dataset.py     # PGN -> JSONL converter
 ├── data_handler.py       # Line-based dataset logic
 utils/
@@ -32,7 +34,8 @@ utils/
 ├── indexUCI.py           # Move indexing logic
 entry_model.py            # ResNet model definition
 entry_trainer.py          # Training runner
-entry_game.py             # Play against your model
+model_vs_self.py         # Have a trained checkpoint play self-games
+Model_vs_SF.py           # Evaluate a trained checkpoint against Stockfish
 requirements.txt
 README.md
 ```
@@ -41,13 +44,13 @@ README.md
 
 ### 1. Prepare Your Dataset
 
-Convert a PGN file into training data:
+Place your PGN dataset at `data/games.pgn`, then generate training examples:
 
 ```bash
-python create_dataset.py
+python data/create_dataset.py
 ```
 
-This creates a `games.jsonl` file with FEN positions and move labels.
+This creates `data/games.jsonl` with FEN positions, UCI moves, and move indices. Both the trainer and learning-rate finder read this file directly. No extra conversion step is required. The dataset is not included in the repository.
 
 ### 2. Train the Model
 
@@ -55,15 +58,18 @@ This creates a `games.jsonl` file with FEN positions and move labels.
 python entry_trainer.py
 ```
 
-Trains the model using your dataset and saves a checkpoint to `/checkpoints`.
+Trains the model using `data/games.jsonl` and saves a reusable Lightning checkpoint to `checkpoints/chess_model_final.ckpt`.
 
 ### 3. Evaluate the Model
 
+Once training has produced `checkpoints/chess_model_final.ckpt`, choose an evaluation script:
+
 ```bash
-python entry_game.py
+python model_vs_self.py
+python Model_vs_SF.py
 ```
 
-Play against your model and test its understanding.
+The first generates self-play PGNs. The second plays the model against Stockfish and requires `STOCKFISH_PATH` in `Model_vs_SF.py` to point at an installed Stockfish executable. These are automated evaluation scripts, not a human-versus-AI interface.
 
 ## 📦 Requirements
 
@@ -87,3 +93,7 @@ Need help? Join the [Discord](https://discord.gg/EbZJxnJyQr) and hop into the ML
 ---
 
 📘 Need help? See [Getting Started Guide](getting_started.md)
+
+## 📜 License
+
+The repository's original source code is MIT licensed (see [LICENSE](LICENSE)). Dependencies retain their own licenses; in particular, `chess` (python-chess) is GPL-3.0-or-later. Review its conditions when distributing combined software or checking project eligibility.
