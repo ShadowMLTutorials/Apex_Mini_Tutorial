@@ -1,4 +1,5 @@
 import random
+from pathlib import Path
 
 import chess
 import chess.engine
@@ -8,7 +9,7 @@ from entry_model import ChessResNet
 from utils import indexUCI
 from utils.fen_to_tensor import convert_fen_to_tensor
 
-MODEL_PATH = "checkpoints/(ENTER CHECKPOINT FILE NAME)"
+MODEL_PATH = Path(__file__).resolve().parent / "checkpoints" / "chess_model_final.ckpt"
 STOCKFISH_PATH = "(ENTER STOCKFISH INSTALL PATH NAME)"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 MAX_MOVES = 300
@@ -21,17 +22,16 @@ SKILL_ELO_MAP = {0: 1320, 1: 1467, 2: 1608, 3: 1742, 4: 1923, 5: 2204, 6: 2363, 
 
 
 def load_model(path):
-    model = ChessResNet(num_channels=208, num_blocks=20)
-    checkpoint = torch.load(path, map_location=DEVICE)
-    model.load_state_dict(checkpoint["state_dict"])
-    model.half().to(DEVICE)
+    # Recover the trained network shape from the Lightning checkpoint.
+    model = ChessResNet.load_from_checkpoint(str(path), map_location=DEVICE)
+    model.to(DEVICE)
     model.eval()
     return model
 
 
 def choose_move(model, board):
     x = convert_fen_to_tensor(board.fen())
-    x = torch.tensor(x, dtype=torch.float16).unsqueeze(0).to(DEVICE)
+    x = torch.tensor(x, dtype=torch.float32).unsqueeze(0).to(DEVICE)
     with torch.no_grad():
         logits = model(x).squeeze() / TEMPERATURE
         probs = torch.softmax(logits, dim=0)
