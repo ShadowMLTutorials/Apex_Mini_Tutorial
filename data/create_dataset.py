@@ -10,6 +10,7 @@
 # Ideal for beginners building their first ML-ready chess dataset.
 # -------------------------------------------------------------
 
+import argparse
 import io
 import json
 import os
@@ -102,6 +103,9 @@ def process_pgn():
     for result in results:
         fen_move_pairs.extend(result)
 
+    if not fen_move_pairs:
+        raise ValueError("No training positions passed the filters. Check the PGN or use --smoke-test for a small sample.")
+
     print("\n📦 Removing duplicate FENs for diverse training...")
     unique = remove_duplicates(fen_move_pairs)
     fen_move_pairs[:] = unique
@@ -116,6 +120,14 @@ def process_pgn():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Convert PGN games to chess policy training examples.")
+    parser.add_argument("--smoke-test", action="store_true",
+                        help="Accept games without Elo/checkmate restrictions for pipeline testing.")
+    args = parser.parse_args()
+    if args.smoke_test:
+        REQUIRE_MATE = False
+        MIN_ELO = 0
+        NUM_WORKERS = 1
     print("\n================= ♟ CHESS DATASET CREATOR ♟ =================")
     print(f"📥 Input PGN ..........: {INPUT_PGN}")
     print(f"💾 Output JSONL .......: {OUTPUT_JSONL}")
@@ -124,6 +136,10 @@ if __name__ == "__main__":
     if REQUIRE_MATE: print("✅ Only games ending in CHECKMATE will be included")
     print("============================================================\n")
 
+    if not INPUT_PGN.is_file():
+        raise FileNotFoundError(f"PGN not found: {INPUT_PGN}. Place a PGN at data/games.pgn.")
     find_valid_games()
+    if not game_strings:
+        raise ValueError("No games passed the PGN filters. Try --smoke-test with a small dataset.")
     process_pgn()
     print("\n🎉 Dataset creation complete! Your training data is ready.")
