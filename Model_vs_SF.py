@@ -1,3 +1,4 @@
+import argparse
 import random
 from pathlib import Path
 
@@ -21,9 +22,15 @@ SKILL_ELO_MAP = {0: 1320, 1: 1467, 2: 1608, 3: 1742, 4: 1923, 5: 2204, 6: 2363, 
                  }
 
 
-def load_model(path):
-    # Recover the trained network shape from the Lightning checkpoint.
-    model = ChessResNet.load_from_checkpoint(str(path), map_location=DEVICE)
+def load_model(path, random_init=False):
+    if random_init:
+        print("SMOKE TEST: using a small randomly initialized model (not trained).")
+        model = ChessResNet(num_blocks=1, num_channels=16)
+    else:
+        if not path.is_file():
+            raise FileNotFoundError(f"Checkpoint not found: {path}. Train first or use --smoke-test.")
+        # Recover the trained network shape from the Lightning checkpoint.
+        model = ChessResNet.load_from_checkpoint(str(path), map_location=DEVICE)
     model.to(DEVICE)
     model.eval()
     return model
@@ -80,8 +87,8 @@ def play_vs_stockfish(model, engine, skill_level):
     return result
 
 
-def evaluate_model(model):
-    with chess.engine.SimpleEngine.popen_uci(STOCKFISH_PATH) as engine:
+def evaluate_model(model, stockfish_path):
+    with chess.engine.SimpleEngine.popen_uci(stockfish_path) as engine:
         skill_level = 0
         total_wins, total_draws, total_losses, total_games = 0, 0, 0, 0
         retry_flag = False
@@ -132,5 +139,18 @@ def evaluate_model(model):
 
 
 if __name__ == "__main__":
-    model = load_model(MODEL_PATH)
-    evaluate_model(model)
+    parser = argparse.ArgumentParser(description="Evaluate a chess model against Stockfish.")
+    parser.add_argument("--checkpoint", type=Path, default=MODEL_PATH,
+                        help="Path to a Lightning training checkpoint.")
+    parser.add_argument("--stockfish", default=STOCKFISH_PATH,
+                        help="Path to an installed Stockfish executable.")
+    parser.add_argument("--smoke-test", action="store_true",
+                        help="Use a small untrained model and a short test; no checkpoint required.")
+    args = parser.parse_args()
+    if args.stockfish.startswith("(ENTER"):
+        parser.error("Provide a Stockfish executable using --stockfish PATH.")
+    if args.smoke_test:
+        MAX_MOVES = 20
+        GAMES_PER_LEVEL = 1
+    model = load_model(args.checkpoint, random_init=args.smoke_test)
+    evaluate_model(model, args.stockfish)
