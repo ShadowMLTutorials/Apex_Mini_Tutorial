@@ -1,13 +1,15 @@
 import matplotlib.pyplot as plt
+import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.tuner import Tuner
 
 from data.data_handler import PolicyDataModule
+from entry_trainer import JSONL_PATH, NUM_WORKERS
 from entry_model import ChessResNet
 
 
 def entry_dataloader():
-    return PolicyDataModule(data_path="data/games.jsonl", batch_size=256, num_workers=4)
+    return PolicyDataModule(data_path=JSONL_PATH, batch_size=256, num_workers=NUM_WORKERS)
 
 
 def get_lr(trainer, datamodule, model):
@@ -25,7 +27,7 @@ def get_lr(trainer, datamodule, model):
 
 
 if __name__ == "__main__":
-    trainer = Trainer(max_epochs=1, enable_checkpointing=False, logger=False, precision='16-mixed')
+    trainer = Trainer(max_epochs=1, enable_checkpointing=False, logger=False, precision='16-mixed' if torch.cuda.is_available() else '32-true')
     model = ChessResNet(lr=0.001)
     lr_finder = get_lr(trainer, entry_dataloader(), model)
 
