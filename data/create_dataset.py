@@ -25,30 +25,30 @@ from tqdm import tqdm
 from utils.indexUCI import encode
 
 # ===================================== USER SETTINGS =====================================
-INPUT_PGN = Path("games.pgn")  # Path to input PGN file
-OUTPUT_JSONL = Path("games.jsonl")  # Path to save processed data
+INPUT_PGN = Path(__file__).resolve().parent / "games.pgn"  # PGN placed in data/
+OUTPUT_JSONL = Path(__file__).resolve().parent / "games.jsonl"  # Used directly by training
 REQUIRE_MATE = True  # Only keep games that end in checkmate
 MIN_ELO = 2100  # Minimum average Elo of players
 MIN_MOVES = 20  # Ignore games shorter than this
 MAX_MOVES = 100  # Ignore games longer than this
-NUM_WORKERS = min(36, os.cpu_count() - 2)  # Parallel workers
+NUM_WORKERS = max(1, min(36, (os.cpu_count() or 1) - 2))  # Parallel workers
 # =========================================================================================
 
 fen_move_pairs = []
 game_strings = []
 
 
-def should_include_game(headers):
-    """Check if a game meets filtering criteria based on ELO and termination."""
+def should_include_game(game):
+    """Check minimum Elo and, if requested, actual checkmate on the final board."""
     try:
+        headers = game.headers
         avg_elo = (int(headers["WhiteElo"]) + int(headers["BlackElo"])) / 2
         if avg_elo < MIN_ELO:
-            return False  # skip game for low elo
-
-        if REQUIRE_MATE and "Normal" not in headers.get("Termination", ""):
-            return False  # skip game for no checkmate
-    except:
-        return False  # skip game because header is missing elo or checkmate info
+            return False
+        if REQUIRE_MATE and not game.end().board().is_checkmate():
+            return False
+    except (KeyError, ValueError, TypeError):
+        return False
     return True
 
 
@@ -56,7 +56,7 @@ def find_valid_games():
     """Scan PGN file and collect games that meet the filtering criteria."""
     with open(INPUT_PGN, encoding='utf-8') as f:
         for game in tqdm(iter(lambda: chess.pgn.read_game(f), None), desc="Scanning games", unit="game"):
-            if should_include_game(game.headers):
+            if should_include_game(game):
                 game_strings.append(str(game))
 
 
