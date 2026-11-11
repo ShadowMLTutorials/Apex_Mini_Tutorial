@@ -27,11 +27,18 @@ def entry_dataloader():
     return data_module
 
 
-def entry_train(resume_ckpt=None):
+def entry_train(resume_ckpt=None, smoke_test=False):
+    if not JSONL_PATH.is_file() or JSONL_PATH.stat().st_size == 0:
+        raise FileNotFoundError(
+            f"Training data missing or empty: {JSONL_PATH}. Run python data/create_dataset.py first."
+        )
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
-    data = entry_dataloader()
+    data = (PolicyDataModule(data_path=JSONL_PATH, batch_size=8, num_workers=0)
+            if smoke_test else entry_dataloader())
 
-    model = ChessResNet(lr=LEARNING_RATE)
+    # An intentionally tiny model is enough to verify the end-to-end training flow.
+    model = (ChessResNet(num_blocks=1, num_channels=16, lr=LEARNING_RATE)
+             if smoke_test else ChessResNet(lr=LEARNING_RATE))
 
     logger = CSVLogger(str(Path(__file__).resolve().parent / "logs"), name="entry_train")
     from pytorch_lightning.callbacks import ModelCheckpoint
@@ -43,7 +50,7 @@ def entry_train(resume_ckpt=None):
     )
 
     trainer = pytorch_lightning.Trainer(
-        max_epochs=EPOCHS,
+        max_epochs=1 if smoke_test else EPOCHS,
         logger=logger,
         callbacks=[RichProgressBar(), checkpoint_callback],
         log_every_n_steps=50,
@@ -55,7 +62,7 @@ def entry_train(resume_ckpt=None):
     trainer.fit(model, datamodule=data, ckpt_path=resume_ckpt)
 
     print(f"Training complete. Logs saved to: {logger.log_dir}")
-    save_path = CHECKPOINT_DIR / "chess_model_final.ckpt"
+    save_path = CHECKPOINT_DIR / ("chess_model_smoke.ckpt" if smoke_test else "chess_model_final.ckpt")
     trainer.save_checkpoint(str(save_path))
     print(f"\n✅ Training complete. Model saved to: {save_path}\n")
 
@@ -69,6 +76,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--resume", type=str, help="Path to .ckpt file to resume training from")
+    parser.add_argument("--smoke-test", action="store_true",
+                        help="Train a tiny network for one epoch to verify the pipeline.")
     args = parser.parse_args()
 
-    entry_train(resume_ckpt=args.resume)
+    entry_train(resume_ckpt=args.resume, smoke_test=args.smoke_test)
