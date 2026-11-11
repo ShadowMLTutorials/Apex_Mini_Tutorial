@@ -1,4 +1,5 @@
 import random
+from pathlib import Path
 
 import chess
 import chess.pgn
@@ -8,7 +9,7 @@ from entry_model import ChessResNet
 from utils import indexUCI
 from utils.fen_to_tensor import convert_fen_to_tensor
 
-MODEL_PATH = "checkpoints/(ENTER CHECKPOINT FILE NAME)"
+MODEL_PATH = Path(__file__).resolve().parent / "checkpoints" / "chess_model_final.ckpt"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 MAX_MOVES = 300
 NUM_GAMES = 20
@@ -16,9 +17,8 @@ TEMPERATURE = .5
 
 
 def load_model(path):
-    model = ChessResNet(num_channels=192, num_blocks=40)
-    checkpoint = torch.load(path, map_location=DEVICE)
-    model.load_state_dict(checkpoint["state_dict"])
+    # Lightning checkpoints retain the model hyperparameters used for training.
+    model = ChessResNet.load_from_checkpoint(str(path), map_location=DEVICE)
     model.to(DEVICE)
     model.eval()
     return model
