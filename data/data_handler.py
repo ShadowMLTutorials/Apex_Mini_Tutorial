@@ -14,7 +14,7 @@ import warnings
 import pytorch_lightning
 import torch
 from torch.utils.data import DataLoader
-from torch.utils.data import IterableDataset
+from torch.utils.data import IterableDataset, get_worker_info
 
 from utils import indexUCI
 from utils.fen_to_tensor import convert_fen_to_tensor
@@ -52,8 +52,12 @@ class ChessDataset(IterableDataset):
             return None
 
     def __iter__(self):
+        # Each worker must read a disjoint subset, not duplicate the entire file.
+        worker = get_worker_info()
         with open(self.file_path, 'r') as f:
-            for line in f:
+            for row_number, line in enumerate(f):
+                if worker is not None and row_number % worker.num_workers != worker.id:
+                    continue
                 result = self.parse_line(line)
                 if result is not None:
                     yield result
@@ -74,7 +78,7 @@ class PolicyDataModule(pytorch_lightning.LightningDataModule):
         return DataLoader(
             self.train_set,
             batch_size=self.batch_size,
-            pin_memory=True,
-            persistent_workers=True,
+            pin_memory=torch.cuda.is_available(),
+            persistent_workers=self.num_workers > 0,
             num_workers=self.num_workers
         )
