@@ -87,10 +87,15 @@ if __name__ == "__main__":
                         help="Path to a Lightning training checkpoint.")
     parser.add_argument("--smoke-test", action="store_true",
                         help="Use a small untrained model; no checkpoint required.")
+    parser.add_argument("--games", type=int, default=None,
+                        help="Number of games (default: 20, or 1 in smoke mode).")
+    parser.add_argument("--max-moves", type=int, default=None,
+                        help="Maximum plies per game (default: 300, or 20 in smoke mode).")
     args = parser.parse_args()
-    if args.smoke_test:
-        NUM_GAMES = 1
-        MAX_MOVES = 20
+    NUM_GAMES = args.games if args.games is not None else (1 if args.smoke_test else NUM_GAMES)
+    MAX_MOVES = args.max_moves if args.max_moves is not None else (20 if args.smoke_test else MAX_MOVES)
+    if NUM_GAMES < 1 or MAX_MOVES < 1:
+        parser.error("--games and --max-moves must both be positive.")
     model = load_model(args.checkpoint, random_init=args.smoke_test)
     games = [play_self_game(model) for _ in range(NUM_GAMES)]
     save_games(games)
